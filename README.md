@@ -9,6 +9,25 @@
 - [**kalita-server**](https://github.com/azmke/kalita-server) is a server written in Java that provides the speech synthesis.
 - [**kalita-js**](https://github.com/azmke/kalita-js) is a JavaScript client for integration into a website that provides a graphical user interface.
 
+## Prequesites
+
+- Have the same JRE and JDK version installed *(jdk1.8.0_271 and jre1.8.0_271 used for testing)*
+- Have the environment variable **JAVA_HOME** set *(e.g. C:\Program Files\Java\jdk1.8.0_271)*
+
+## How to use
+
+1. Start the server.
+
+```sh
+cd marytts-server-demo
+gradlew shadowJar
+java -jar build/libs/txt2wav-1.0-SNAPSHOT.jar
+```
+
+2. Open the file **connect.html** in your browser.
+3. Type any text you want to be read out loud into the textbox.
+4. Click the **TTS** button.
+
 ## Disclaimer
 
 THIS SOURCE CODE IS PART OF A PROJECT WORK FOR THE MODULES ["IT SECURITY AND DIGITAL SELF-DEFENSE" (MMDAP)](https://omen.cs.uni-magdeburg.de/itiamsl/deutsch/lehre/ws-20-21/mmdap.html) AND ["KEY AND METHODOLOGICAL COMPETENCIES IN IT SECURITY" (SMK-ITS)](https://omen.cs.uni-magdeburg.de/itiamsl/deutsch/lehre/ws-20-21/smkits.html) IN THE WINTER SEMESTER 2020/21 AT THE OTTO VON GUERICKE UNIVERSITY MAGDEBURG UNDER THE FACULTY SUPERVISION OF PROF. DR.-ING. JANA DITTMANN, PROF. DR.-ING. CLAUS VIELHAUER, DR.-ING. STEFAN KILTZ AND ROBERT ALTSCHAFFEL.
