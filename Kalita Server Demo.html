@@ -7,13 +7,36 @@
 			function sendMessage(){
 				var message = document.getElementById('userInput').value;
 				document.getElementById('userInput').value = '';
-				socket.send(message);
+				getAudio(message);
 			}
 
 			function showMessage(text) {
 				document.getElementById('message').innerHTML = text;
 			}
 
+			function getAudio(text){
+				fetch('http://localhost:8080/tts', {
+					method: 'POST',
+					body: text,
+				})
+				.then(response => response.blob())
+				.then(audioBlob => {
+					if(audioBlob instanceof Blob) {
+						const file = new File([audioBlob], "voice.wav")
+						audio = URL.createObjectURL(file)
+						let sound = document.createElement('audio');
+						sound.src = audio;
+						sound.crossOrigin = 'anonymous';
+						sound.play();
+						//Error here
+					}
+				})
+				.catch((error) => {
+					console.error('Error:', error);
+				});
+			}
+
+			//Old function with WebSocket
 			function subscribeToWebSocket(){
 				if('WebSocket' in window){
 					socket = new WebSocket('ws://localhost:8080/kalitatts');
@@ -42,7 +65,7 @@
 			}
 		</script>
 	</head>
-	<body onload="javascript:subscribeToWebSocket()">
+	<body>
 		<input id="userInput" type="text">
 		<button onclick="javascript:sendMessage()">TTS</button>
 		<div id="message"></div>
