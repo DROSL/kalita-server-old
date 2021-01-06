@@ -12,7 +12,7 @@
 ## Prequesites
 
 - Have the same JRE and JDK version installed *(jdk1.8.0_271 and jre1.8.0_271 used for testing)*
-- Have the environment variable **JAVA_HOME** set *(e.g. C:\Program Files\Java\jdk1.8.0_271)*
+- Have the environment variable **JAVA_HOME** set to the path of the JDK mentioned in the previous step*(e.g. C:\Program Files\Java\jdk1.8.0_271)*
 
 ## How to use
 
@@ -23,12 +23,12 @@ cd kalita-server
 gradlew shadowJar
 ```
 
-2. Serve the build folder on a server by running:
+2. Serve the build folder on a server by running the **kalita-server-1.0.jar** from **build/libs/**:
 ```sh
-java -jar build/libs/kalita-server-1.0.jar
+java -jar kalita-server-1.0.jar
 ```
 
-2. Open the file **connect.html** in your browser.
+2. Open the file *Kalita Server Demo.html** in your browser.
 3. Type any text you want to be read out loud into the textbox.
 4. Click the **TTS** button.
 
