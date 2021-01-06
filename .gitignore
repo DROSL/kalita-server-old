@@ -11,6 +11,10 @@ log/
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
+# Build files
+build/
+.gradle/
+
 # Package Files #
 *.jar
 *.war

@@ -12,7 +12,7 @@
 ## Prequesites
 
 - Have the same JRE and JDK version installed *(jdk1.8.0_271 and jre1.8.0_271 used for testing)*
-- Have the environment variable **JAVA_HOME** set to the path of the JDK mentioned in the previous step*(e.g. C:\Program Files\Java\jdk1.8.0_271)*
+- Have the environment variable **JAVA_HOME** set to the path of the JDK mentioned in the previous step *(e.g. C:\Program Files\Java\jdk1.8.0_271)*
 
 ## How to use
 
@@ -23,7 +23,7 @@ cd kalita-server
 gradlew shadowJar
 ```
 
-2. Serve the build folder on a server by running the **kalita-server-1.0.jar** from **build/libs/**:
+2. Serve the build on a server by running the **kalita-server-1.0.jar** from **build/libs/** with the following command (on windows):
 ```sh
 java -jar kalita-server-1.0.jar
 ```

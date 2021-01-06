@@ -18,69 +18,70 @@ import marytts.util.data.audio.MaryAudioUtils;
 import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
- 
+
 public class WebSocketHandler extends BaseWebSocketHandler {
- 
-  private int connections = 0;
- 
-  @Override
-  public void onOpen(WebSocketConnection connection) {
-    this.connections++;
-    connection.send("Connected.");
-  }
- 
-  @Override
-  public void onClose(WebSocketConnection connection) {
-    this.connections--;
-  }
- 
-  @Override
-  public void onMessage(WebSocketConnection connection, String message) {
-    try {
-      tts(message, connection);
-    } catch (MaryConfigurationException e) {
-      System.err.println(e.getMessage());
-    }
-  }
 
-  public static void tts(String inputText, WebSocketConnection connection) throws MaryConfigurationException {
+	private int connections = 0;
 
-    // get output option
-    String outputFileName = "output.wav";
+	@Override
+	public void onOpen(WebSocketConnection connection) {
+		this.connections++;
+		connection.send("Connected.");
+	}
 
-    // get input
-    LocalMaryInterface mary = null;
-    try {
-      mary = new LocalMaryInterface();
-    } catch (MaryConfigurationException e) {
-      System.err.println("Could not initialize MaryTTS interface: " + e.getMessage());
-      throw e;
-    }
+	@Override
+	public void onClose(WebSocketConnection connection) {
+		this.connections--;
+	}
 
-                // Set voice / language
-                mary.setVoice("cmu-slt-hsmm");
+	@Override
+	public void onMessage(WebSocketConnection connection, String message) {
+		String voice = "cmu-slt-hsmm";
+		try {
+			tts(message, voice, connection);
+		} catch (MaryConfigurationException e) {
+			System.err.println(e.getMessage());
+		}
+	}
 
-    // synthesize
-    AudioInputStream audio = null;
-    try {
-      audio = mary.generateAudio(inputText);
-    } catch (SynthesisException e) {
-      System.err.println("Synthesis failed: " + e.getMessage());
-      System.exit(1);
-    }
+	public static void tts(String inputText, String voice, WebSocketConnection connection) throws MaryConfigurationException {
 
-    // write to output
-    double[] samples = MaryAudioUtils.getSamplesAsDoubleArray(audio);
-    try {
-      MaryAudioUtils.writeWavFile(samples, outputFileName, audio.getFormat());
-      File f = new File("./output.wav");
-      byte[] byteArray = FileUtils.readFileToByteArray(f);
-      connection.send(byteArray);
-      System.out.println("Audio generated for message: " + inputText);
-      f.delete();
-    } catch (IOException e) {
-      System.err.println("Could not generate audio." + "\n" + e.getMessage());
-      System.exit(1);
-    }
-  }
+		// get output option
+		String outputFileName = "output.wav";
+
+		// get input
+		LocalMaryInterface mary = null;
+		try {
+			mary = new LocalMaryInterface();
+		} catch (MaryConfigurationException e) {
+			System.err.println("Could not initialize MaryTTS interface: " + e.getMessage());
+			throw e;
+		}
+
+			// Set voice / language
+			mary.setVoice(voice);
+
+		// synthesize
+		AudioInputStream audio = null;
+		try {
+			audio = mary.generateAudio(inputText);
+		} catch (SynthesisException e) {
+			System.err.println("Synthesis failed: " + e.getMessage());
+			System.exit(1);
+		}
+
+		// write to output
+		double[] samples = MaryAudioUtils.getSamplesAsDoubleArray(audio);
+		try {
+			MaryAudioUtils.writeWavFile(samples, outputFileName, audio.getFormat());
+			File f = new File("./output.wav");
+			byte[] byteArray = FileUtils.readFileToByteArray(f);
+			connection.send(byteArray);
+			System.out.println("Audio generated for message: " + inputText);
+			f.delete();
+		} catch (IOException e) {
+			System.err.println("Could not generate audio." + "\n" + e.getMessage());
+			System.exit(1);
+		}
+	}
 }
