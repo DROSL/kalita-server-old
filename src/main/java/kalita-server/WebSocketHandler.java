@@ -1,4 +1,4 @@
-package de.dfki.mary;
+package kalita;
 
 import org.webbitserver.BaseWebSocketHandler;
 import org.webbitserver.WebSocketConnection;
@@ -76,9 +76,10 @@ public class WebSocketHandler extends BaseWebSocketHandler {
       File f = new File("./output.wav");
       byte[] byteArray = FileUtils.readFileToByteArray(f);
       connection.send(byteArray);
-      System.out.println("Output written to " + outputFileName);
+      System.out.println("Audio generated for message: " + inputText);
+      f.delete();
     } catch (IOException e) {
-      System.err.println("Could not write to file: " + outputFileName + "\n" + e.getMessage());
+      System.err.println("Could not generate audio." + "\n" + e.getMessage());
       System.exit(1);
     }
   }

@@ -15,7 +15,7 @@
  
       function subscribeToWebSocket(){
         if('WebSocket' in window){
-          socket = new WebSocket('ws://localhost:8080/marytts');
+          socket = new WebSocket('ws://localhost:8080/kalitatts');
           socket.onopen = function(){
             showMessage('Connected to WebSocket.');
           };

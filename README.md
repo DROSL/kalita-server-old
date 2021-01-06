@@ -16,12 +16,16 @@
 
 ## How to use
 
-1. Start the server.
+1. Build the server.
 
 ```sh
 cd kalita-server
 gradlew shadowJar
-java -jar build/libs/txt2wav-1.0-SNAPSHOT.jar
+```
+
+2. Serve the build folder on a server by running:
+```sh
+java -jar build/libs/kalita-server-1.0.jar
 ```
 
 2. Open the file **connect.html** in your browser.
