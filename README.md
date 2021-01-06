@@ -19,7 +19,7 @@
 1. Start the server.
 
 ```sh
-cd marytts-server-demo
+cd kalita-server
 gradlew shadowJar
 java -jar build/libs/txt2wav-1.0-SNAPSHOT.jar
 ```
