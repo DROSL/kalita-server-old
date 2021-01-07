@@ -28,7 +28,7 @@ gradlew shadowJar
 java -jar kalita-server-1.0.jar
 ```
 
-2. Open the file *Kalita Server Demo.html** in your browser.
+2. Open the file **Kalita Server Demo.html** in your browser.
 3. Type any text you want to be read out loud into the textbox.
 4. Click the **TTS** button.
 
