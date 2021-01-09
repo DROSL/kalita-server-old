@@ -15,26 +15,9 @@
 			}
 
 			function getAudio(text){
-				fetch('http://localhost:8080/tts', {
-					method: 'POST',
-					body: text,
-				})
-				.then(response => response.blob())
-				.then(audioBlob => {
-					if(audioBlob instanceof Blob) {
-						const file = new File([audioBlob], "voice.wav")
-						audio = URL.createObjectURL(file)
-						let sound = document.createElement('audio');
-						sound.src = audio;
-						sound.crossOrigin = 'anonymous';
-						sound.play();
-						console.log(audio);
-						//Error here
-					}
-				})
-				.catch((error) => {
-					console.error('Error:', error);
-				});
+				var queryText = encodeURIComponent(text);
+				var audio = new Audio(`http://localhost:8080/speak/?text=${queryText}`);
+				audio.play();
 			}
 
 			//Old function with WebSocket

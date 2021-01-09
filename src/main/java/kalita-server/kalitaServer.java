@@ -6,6 +6,7 @@ import org.webbitserver.WebServers;
 import org.webbitserver.handler.StaticFileHandler;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.io.OutputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -15,10 +16,17 @@ import java.nio.charset.Charset;
 
 import java.net.InetSocketAddress;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
+
 import java.util.Set;
 import java.util.Base64;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import javax.sound.sampled.AudioInputStream;
 
@@ -42,16 +50,9 @@ public class kalitaServer {
 		HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 		System.out.println("server started at " + port);
 		//server.createContext("/", new RootHandler());
-		server.createContext("/tts", new PostHandler());
+		server.createContext("/speak", new GetHandler());
 		server.setExecutor(null);
 		server.start();
-
-		//Old WebSocket
-		/*WebServer webServer = WebServers.createWebServer(8080);
-		webServer.add(new StaticFileHandler("/static-files"));
-		webServer.add("/kalitatts", new WebSocketHandler());
-		webServer.start();
-		System.out.println("Server started on port " + webServer.getPort());*/
 	}
 
 	//Maybe serve the demo from here?
@@ -67,15 +68,14 @@ public class kalitaServer {
 		}
 	}
 
-	static class PostHandler implements HttpHandler {
+	static class GetHandler implements HttpHandler {
 
 		@Override
 		public void handle(HttpExchange he) throws IOException {
 			// parse request
 			Map<String, Object> parameters = new HashMap<String, Object>();
-			InputStreamReader isr = new InputStreamReader(he.getRequestBody(), "utf-8");
-			BufferedReader br = new BufferedReader(isr);
-			String query = br.readLine();
+			URI requestedUri = he.getRequestURI();
+			String query = requestedUri.getRawQuery();
 
 			he.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			he.getResponseHeaders().add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-*, Accept, Authorization");
@@ -83,23 +83,43 @@ public class kalitaServer {
 			he.getResponseHeaders().add("Access-Control-Allow-Methods", "POST,GET");
 			he.getResponseHeaders().add("Max-Age-Seconds", "3000");
 
-			// send response
 			try {
-				String response = tts(query);
-				he.sendResponseHeaders(200, response.length());
+				String text = "";
+				Map<String, String> parameterMap = splitQuery(query);
+				for (String key : parameterMap.keySet()){
+					if(key.equals("text")) {
+						text = parameterMap.get(key);
+					}
+				}
+				byte[] response = tts(text);
+				he.sendResponseHeaders(200, response.length);
+				he.getResponseHeaders().add("Content-Disposition", "attachment; filename=" + "speak.wav");
+
 				OutputStream os = he.getResponseBody();
-				os.write(response.getBytes());
+				os.write(response);
 				os.close();
+
 			} catch (MaryConfigurationException e) {
 				System.err.println(e.getMessage());
 			}
 		}
 	}
 
-	static String tts(String inputText) throws MaryConfigurationException {
+	public static Map<String, String> splitQuery(String query) throws UnsupportedEncodingException {
+		Map<String, String> query_pairs = new LinkedHashMap<String, String>();
+		String[] pairs = query.split("&");
+
+		for (String pair : pairs) {
+			int idx = pair.indexOf("=");
+			query_pairs.put(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
+		}
+		return query_pairs;
+	}
+
+	static byte[] tts(String inputText) throws MaryConfigurationException {
 		String voice = "cmu-slt-hsmm";
 		// get output option
-		String outputFileName = "output.wav";
+		String outputFileName = "speak.wav";
 
 		// get input
 		LocalMaryInterface mary = null;
@@ -125,11 +145,11 @@ public class kalitaServer {
 		double[] samples = MaryAudioUtils.getSamplesAsDoubleArray(audio);
 		try {
 			MaryAudioUtils.writeWavFile(samples, outputFileName, audio.getFormat());
-			File f = new File("./output.wav");
+			File f = new File("./speak.wav");
 			byte[] byteArray = FileUtils.readFileToByteArray(f);
 			System.out.println("Audio generated for message: " + inputText);
 			f.delete();
-			return Base64.getEncoder().encodeToString(byteArray);
+			return byteArray;
 		} catch (IOException e) {
 			System.err.println("Could not generate audio." + "\n" + e.getMessage());
 			System.exit(1);
