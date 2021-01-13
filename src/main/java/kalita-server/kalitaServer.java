@@ -21,12 +21,16 @@ import java.net.URLEncoder;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
+import java.nio.ByteOrder;
+import java.nio.ByteBuffer;
 
 import java.util.Set;
 import java.util.Base64;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Arrays;
 
 import javax.sound.sampled.AudioInputStream;
 
@@ -77,13 +81,23 @@ public class kalitaServer {
 			URI requestedUri = he.getRequestURI();
 			String query = requestedUri.getRawQuery();
 
+			Map<String,List<String>> requestHeaders = he.getRequestHeaders();
+
 			he.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
 			he.getResponseHeaders().add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-*, Accept, Authorization");
 			he.getResponseHeaders().add("Access-Control-Allow-Credentials", "true");
 			he.getResponseHeaders().add("Access-Control-Allow-Methods", "POST,GET");
 			he.getResponseHeaders().add("Max-Age-Seconds", "3000");
+			he.getResponseHeaders().add("Accept-Ranges", "bytes");
 
 			try {
+				String range = "";
+				for (String key : requestHeaders.keySet()){
+					if(key.equals("Range")) {
+						range = requestHeaders.get(key).get(0);
+					}
+				}
+
 				String text = "";
 				String language = "";
 				Map<String, String> parameterMap = splitQuery(query);
@@ -95,9 +109,29 @@ public class kalitaServer {
 						language = parameterMap.get(key);
 					}
 				}
+
 				if(text.length() > 0) {
 					byte[] response = tts(text, language);
-					he.sendResponseHeaders(200, response.length);
+					int length = response.length;
+					if(!range.equals("")) {
+						String[] ranges = range.substring("bytes=".length()).split("-");
+						int from = Integer.valueOf(ranges[0]);
+						int to = response.length-1;
+						if(ranges.length > 1) {
+							to = Integer.valueOf(ranges[1]);
+						}
+						response = Arrays.copyOfRange(response, from, to);
+						if(from > 44) {
+							response = addWavHeader(response);
+						}
+						he.sendResponseHeaders(200, response.length);
+						he.getResponseHeaders().add("Content-Range", "bytes " + from + "-" + to + "/" + length);
+						he.getResponseHeaders().add("Content-Length", String.valueOf(response.length));
+
+					} else {
+						he.sendResponseHeaders(200, response.length);
+					}
+
 					he.getResponseHeaders().add("Content-Disposition", "attachment; filename=" + "speak.wav");
 
 					OutputStream os = he.getResponseBody();
@@ -117,6 +151,27 @@ public class kalitaServer {
 				System.err.println(e.getMessage());
 			}
 		}
+	}
+
+	private static byte[] addWavHeader(byte[] bytes) throws IOException {
+
+		ByteBuffer bufferWithHeader = ByteBuffer.allocate(bytes.length + 44);
+		bufferWithHeader.order(ByteOrder.LITTLE_ENDIAN);
+		bufferWithHeader.put("RIFF".getBytes());
+		bufferWithHeader.putInt(bytes.length + 36);
+		bufferWithHeader.put("WAVE".getBytes());
+		bufferWithHeader.put("fmt ".getBytes());
+		bufferWithHeader.putInt(16);
+		bufferWithHeader.putShort((short) 1);
+		bufferWithHeader.putShort((short) 1);
+		bufferWithHeader.putInt(16000);
+		bufferWithHeader.putInt(32000);
+		bufferWithHeader.putShort((short) 2);
+		bufferWithHeader.putShort((short) 16);
+		bufferWithHeader.put("data".getBytes());
+		bufferWithHeader.putInt(bytes.length);
+		bufferWithHeader.put(bytes);
+		return bufferWithHeader.array();
 	}
 
 	public static Map<String, String> splitQuery(String query) throws UnsupportedEncodingException {
