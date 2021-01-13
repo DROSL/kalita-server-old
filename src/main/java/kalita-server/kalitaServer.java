@@ -85,19 +85,33 @@ public class kalitaServer {
 
 			try {
 				String text = "";
+				String language = "";
 				Map<String, String> parameterMap = splitQuery(query);
 				for (String key : parameterMap.keySet()){
 					if(key.equals("text")) {
 						text = parameterMap.get(key);
 					}
+					if(key.equals("language")) {
+						language = parameterMap.get(key);
+					}
 				}
-				byte[] response = tts(text);
-				he.sendResponseHeaders(200, response.length);
-				he.getResponseHeaders().add("Content-Disposition", "attachment; filename=" + "speak.wav");
+				if(text.length() > 0) {
+					byte[] response = tts(text, language);
+					he.sendResponseHeaders(200, response.length);
+					he.getResponseHeaders().add("Content-Disposition", "attachment; filename=" + "speak.wav");
 
-				OutputStream os = he.getResponseBody();
-				os.write(response);
-				os.close();
+					OutputStream os = he.getResponseBody();
+					os.write(response);
+					os.close();
+				} else {
+					String response = "Please provide a text string that should be converted to audio.";
+					he.sendResponseHeaders(400, response.length());
+
+					OutputStream os = he.getResponseBody();
+					os.write(response.getBytes());
+					os.close();
+				}
+				
 
 			} catch (MaryConfigurationException e) {
 				System.err.println(e.getMessage());
@@ -116,8 +130,17 @@ public class kalitaServer {
 		return query_pairs;
 	}
 
-	static byte[] tts(String inputText) throws MaryConfigurationException {
+	static byte[] tts(String inputText, String language) throws MaryConfigurationException {
 		String voice = "cmu-slt-hsmm";
+		String voiceLanguage = language.toLowerCase();
+		if(voiceLanguage.equals("german")) {
+			voice = "dfki-pavoque-neutral-hsmm";
+		} else if (voiceLanguage.equals("french")) {
+			voice = "upmc-pierre-hsmm";
+		} else {
+			voice = "cmu-slt-hsmm";
+		}
+		System.out.println(voice);
 		// get output option
 		String outputFileName = "speak.wav";
 
@@ -125,12 +148,10 @@ public class kalitaServer {
 		LocalMaryInterface mary = null;
 		try {
 			mary = new LocalMaryInterface();
+			mary.setVoice(voice);
 		} catch (MaryConfigurationException e) {
 			System.err.println("Could not initialize MaryTTS interface: " + e.getMessage());
 		}
-
-			// Set voice / language
-			mary.setVoice(voice);
 
 		// synthesize
 		AudioInputStream audio = null;
@@ -147,7 +168,7 @@ public class kalitaServer {
 			MaryAudioUtils.writeWavFile(samples, outputFileName, audio.getFormat());
 			File f = new File("./speak.wav");
 			byte[] byteArray = FileUtils.readFileToByteArray(f);
-			System.out.println("Audio generated for message: " + inputText);
+			System.out.println("Audio generated for message(" + voice + "): " + inputText);
 			f.delete();
 			return byteArray;
 		} catch (IOException e) {
