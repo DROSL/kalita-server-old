@@ -16,9 +16,8 @@
 
 			function getAudio(text){
 				let queryText = encodeURIComponent(text);
-				let queryLanguage = encodeURIComponent(document.querySelector('input[name="Language"]:checked').value);
-				// Change this to https://address:443/speak/?text=${queryText}&language=${queryLanguage} if you want SSL
-				var audio = new Audio(`http://192.168.56.1:80/speak/?text=${queryText}&language=${queryLanguage}`);
+				// Change this to https://address:443/speak/?text=${queryText} if you want SSL
+				var audio = new Audio(`http://192.168.56.1:80/speak/?text=${queryText}`);
 				console.log(queryLanguage);
 				audio.play();
 			}
@@ -28,14 +27,5 @@
 		<input id="userInput" type="text">
 		<button onclick="javascript:sendMessage()">TTS</button>
 		<div id="message"></div>
-		<form>
-			<p>Choose your language:</p>
-			<input type="radio" id="de" name="Language" checked="true" value="german">
-			<label for="de"> German</label>
-			<input type="radio" id="en" name="Language" value="english">
-			<label for="en"> English</label>
-			<input type="radio" id="fr" name="Language" value="french">
-			<label for="fr"> French</label>
-		</form>
 	</body>
 </html>

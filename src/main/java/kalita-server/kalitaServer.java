@@ -70,6 +70,9 @@ import org.apache.commons.cli.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
+import com.github.pemistahl.lingua.api.*;
+import com.github.pemistahl.lingua.api.Language.*;
+
 public class kalitaServer {
 
 	public static void main(String[] args) throws Exception {
@@ -170,6 +173,12 @@ public class kalitaServer {
 				}
 
 				if(text.length() > 0) {
+					final LanguageDetector detector = LanguageDetectorBuilder.fromLanguages(Language.ENGLISH, Language.FRENCH, Language.GERMAN).build();
+					final Language detectedLanguage = detector.detectLanguageOf(text);
+					System.out.println("Detected Language: " + detectedLanguage.toString());
+					if(language.equals("")) {
+						language = detectedLanguage.toString();
+					}
 					byte[] response = tts(text, language);
 					int length = response.length;
 					if(!range.equals("")) {
