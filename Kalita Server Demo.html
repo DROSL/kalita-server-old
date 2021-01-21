@@ -17,37 +17,10 @@
 			function getAudio(text){
 				let queryText = encodeURIComponent(text);
 				let queryLanguage = encodeURIComponent(document.querySelector('input[name="Language"]:checked').value);
-				var audio = new Audio(`http://localhost:8080/speak/?text=${queryText}&language=${queryLanguage}`);
+				// Change this to https://address:443/speak/?text=${queryText}&language=${queryLanguage} if you want SSL
+				var audio = new Audio(`http://192.168.56.1:80/speak/?text=${queryText}&language=${queryLanguage}`);
 				console.log(queryLanguage);
 				audio.play();
-			}
-
-			//Old function with WebSocket
-			function subscribeToWebSocket(){
-				if('WebSocket' in window){
-					socket = new WebSocket('ws://localhost:8080/kalitatts');
-					socket.onopen = function(){
-						showMessage('Connected to WebSocket.');
-					};
-					socket.onmessage = function(msg){
-						if(msg.data instanceof Blob) {
-							const file = new File([msg.data], "voice.wav")
-							audio = URL.createObjectURL(file)
-							let sound = document.createElement('audio');
-							sound.src = audio;
-							sound.play();
-						}
-						console.log(msg);
-					};
-					socket.onerror = function(msg){
-						showMessage('Sorry but there was an error.');
-						socket.close();
-					};
-					socket.onclose = function(){
-						showMessage('Disconnected. Trying to reconnect...');
-						setTimeout(subscribeToWebSocket(), 1000);
-					};
-				}
 			}
 		</script>
 	</head>

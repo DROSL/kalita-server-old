@@ -10,19 +10,39 @@ import java.io.UnsupportedEncodingException;
 import java.io.OutputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.File;
+import java.io.*;
 
-import java.nio.charset.Charset;
+import java.lang.*;
 
-import java.net.InetSocketAddress;
-
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
 import java.nio.ByteOrder;
 import java.nio.ByteBuffer;
+
+import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.net.URLDecoder;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import java.security.cert.X509Certificate;
+import java.security.KeyStore;
+
 
 import java.util.Set;
 import java.util.Base64;
@@ -34,9 +54,12 @@ import java.util.Arrays;
 
 import javax.sound.sampled.AudioInputStream;
 
+import com.sun.net.httpserver.HttpsExchange;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpsServer;
+import com.sun.net.httpserver.*;
 
 import marytts.LocalMaryInterface;
 import marytts.exceptions.MaryConfigurationException;
@@ -50,26 +73,62 @@ import org.apache.commons.io.FilenameUtils;
 public class kalitaServer {
 
 	public static void main(String[] args) throws Exception {
-		int port = 8080;
-		HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-		System.out.println("server started at " + port);
-		//server.createContext("/", new RootHandler());
-		server.createContext("/speak", new GetHandler());
-		server.setExecutor(null);
-		server.start();
-	}
+		try {
+            // setup the socket address
+            InetSocketAddress address = new InetSocketAddress(InetAddress.getLocalHost(), 443);
 
-	//Maybe serve the demo from here?
-	static class RootHandler implements HttpHandler {
+            // initialise the HTTPS server
+            HttpsServer httpsServer = HttpsServer.create(address, 0);
+            SSLContext sslContext = SSLContext.getInstance("TLS");
 
-		@Override
-		public void handle(HttpExchange he) throws IOException {
-			String response = "<h1>Server started successfully.</h1>";
-			he.sendResponseHeaders(200, response.length());
-			OutputStream os = he.getResponseBody();
-			os.write(response.getBytes());
-			os.close();
-		}
+            // initialise the keystore / set your keystore password here
+            char[] password = "Kalita".toCharArray();
+            KeyStore ks = KeyStore.getInstance("JKS");
+            FileInputStream fis = new FileInputStream("keystore.jks");
+            ks.load(fis, password);
+
+            // setup the key manager factory
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+            kmf.init(ks, password);
+
+            // setup the trust manager factory
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+            tmf.init(ks);
+
+            // setup the HTTPS context and parameters
+            sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+            httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+                public void configure(HttpsParameters params) {
+                    try {
+                        // initialise the SSL context
+                        SSLContext context = getSSLContext();
+                        SSLEngine engine = context.createSSLEngine();
+                        params.setNeedClientAuth(false);
+                        params.setCipherSuites(engine.getEnabledCipherSuites());
+                        params.setProtocols(engine.getEnabledProtocols());
+
+                        // Set the SSL parameters
+                        SSLParameters sslParameters = context.getSupportedSSLParameters();
+                        params.setSSLParameters(sslParameters);
+
+                    } catch (Exception ex) {
+                        System.out.println("Failed to create HTTPS port");
+                    }
+                }
+            });
+			System.out.println("Https server started at " + address);
+			httpsServer.createContext("/speak", new GetHandler());
+			httpsServer.setExecutor(null);
+			httpsServer.start();
+		} catch (Exception exception) {
+			System.out.println("Failed to start https server. Trying to start http server...");
+			InetSocketAddress address = new InetSocketAddress(InetAddress.getLocalHost(), 80);
+			HttpServer httpServer = HttpServer.create(address, 0);
+			System.out.println("Http server started at " + address);
+			httpServer.createContext("/speak", new GetHandler());
+			httpServer.setExecutor(null);
+			httpServer.start();
+        }
 	}
 
 	static class GetHandler implements HttpHandler {
@@ -188,6 +247,7 @@ public class kalitaServer {
 	static byte[] tts(String inputText, String language) throws MaryConfigurationException {
 		String voice = "cmu-slt-hsmm";
 		String voiceLanguage = language.toLowerCase();
+
 		if(voiceLanguage.equals("german")) {
 			voice = "dfki-pavoque-neutral-hsmm";
 		} else if (voiceLanguage.equals("french")) {
@@ -195,6 +255,7 @@ public class kalitaServer {
 		} else {
 			voice = "cmu-slt-hsmm";
 		}
+		
 		System.out.println(voice);
 		// get output option
 		String outputFileName = "speak.wav";
