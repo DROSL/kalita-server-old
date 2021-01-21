@@ -13,6 +13,7 @@
 
 - Have the same JRE and JDK version installed *(jdk1.8.0_271 and jre1.8.0_271 used for testing)*
 - Have the environment variable **JAVA_HOME** set to the path of the JDK mentioned in the previous step *(e.g. C:\Program Files\Java\jdk1.8.0_271)*
+- If you want to serve the service with SSL you simply need to add the certificate as **keystore.jks** in the root folder and set the keystore password in the setup of the https server
 
 ## How to use
 
