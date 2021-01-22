@@ -8,6 +8,7 @@ import org.webbitserver.handler.StaticFileHandler;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.io.OutputStream;
+import java.io.FileInputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -54,6 +55,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Properties;
 
 import javax.sound.sampled.AudioInputStream;
 
@@ -79,7 +81,21 @@ import com.github.pemistahl.lingua.api.Language.*;
 public class kalitaServer {
 
 	public static void main(String[] args) throws Exception {
-		InetSocketAddress address = new InetSocketAddress(8080);
+		kalitaServer server = new kalitaServer();
+
+		String server_address = "127.0.0.1";
+		int port = 8080;
+
+		Map<String, String> config = server.getConfig();
+		for (String key : config.keySet()){
+			if(key.equals("server_address")) {
+				server_address = config.get(key);
+			}
+			if(key.equals("port")) {
+				port = Integer.parseInt(config.get(key));
+			}
+		}
+		InetSocketAddress address = new InetSocketAddress(server_address, port);
 		HttpServer httpServer = HttpServer.create(address, 0);
 		System.out.println("Http server started at " + address);
 		httpServer.createContext("/speak", new GetHandler());
@@ -254,5 +270,30 @@ public class kalitaServer {
 			System.exit(1);
 		}
 		return null;
+	}
+ 
+	private Map<String, String> getConfig() throws IOException {
+		Map<String, String> properties = new HashMap<String, String>();
+
+		try {
+			Properties prop = new Properties();
+			String configFileName = System.getProperty("user.dir") + "\\config.properties";
+
+			InputStream input = new FileInputStream(configFileName);
+
+			if (input != null) {
+				prop.load(input);
+			} else {
+				throw new FileNotFoundException("Config file '" + configFileName + "' not found in the classpath");
+			}
+
+			// get the property value and print it out
+			properties.put("server_address", prop.getProperty("server_address"));
+			properties.put("port", prop.getProperty("port"));
+			input.close();
+		} catch (Exception e) {
+			System.out.println("Exception: " + e);
+		}
+		return properties;
 	}
 }
