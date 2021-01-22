@@ -13,6 +13,7 @@
 
 - Have the same JRE and JDK version installed *(jdk1.8.0_271 and jre1.8.0_271 used for testing)*
 - Have the environment variable **JAVA_HOME** set to the path of the JDK mentioned in the previous step *(e.g. C:\Program Files\Java\jdk1.8.0_271)*
+- Habe **Gradle version 5 or higher** installed
 
 ## How to use
 
