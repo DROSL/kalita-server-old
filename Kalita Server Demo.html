@@ -17,7 +17,7 @@
 			function getAudio(text){
 				let queryText = encodeURIComponent(text);
 				// Change this to https://address:443/speak/?text=${queryText} if you want SSL
-				var audio = new Audio(`http://192.168.56.1:80/speak/?text=${queryText}`);
+				var audio = new Audio(`http://localhost:8080/speak/?text=${queryText}`);
 				console.log(queryLanguage);
 				audio.play();
 			}
