@@ -76,62 +76,12 @@ import com.github.pemistahl.lingua.api.Language.*;
 public class kalitaServer {
 
 	public static void main(String[] args) throws Exception {
-		try {
-            // setup the socket address
-            InetSocketAddress address = new InetSocketAddress(InetAddress.getLocalHost(), 443);
-
-            // initialise the HTTPS server
-            HttpsServer httpsServer = HttpsServer.create(address, 0);
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-
-            // initialise the keystore / set your keystore password here
-            char[] password = "Kalita".toCharArray();
-            KeyStore ks = KeyStore.getInstance("JKS");
-            FileInputStream fis = new FileInputStream("keystore.jks");
-            ks.load(fis, password);
-
-            // setup the key manager factory
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-            kmf.init(ks, password);
-
-            // setup the trust manager factory
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-            tmf.init(ks);
-
-            // setup the HTTPS context and parameters
-            sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-            httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
-                public void configure(HttpsParameters params) {
-                    try {
-                        // initialise the SSL context
-                        SSLContext context = getSSLContext();
-                        SSLEngine engine = context.createSSLEngine();
-                        params.setNeedClientAuth(false);
-                        params.setCipherSuites(engine.getEnabledCipherSuites());
-                        params.setProtocols(engine.getEnabledProtocols());
-
-                        // Set the SSL parameters
-                        SSLParameters sslParameters = context.getSupportedSSLParameters();
-                        params.setSSLParameters(sslParameters);
-
-                    } catch (Exception ex) {
-                        System.out.println("Failed to create HTTPS port");
-                    }
-                }
-            });
-			System.out.println("Https server started at " + address);
-			httpsServer.createContext("/speak", new GetHandler());
-			httpsServer.setExecutor(null);
-			httpsServer.start();
-		} catch (Exception exception) {
-			System.out.println("Failed to start https server. Trying to start http server...");
-			InetSocketAddress address = new InetSocketAddress(InetAddress.getLocalHost(), 80);
-			HttpServer httpServer = HttpServer.create(address, 0);
-			System.out.println("Http server started at " + address);
-			httpServer.createContext("/speak", new GetHandler());
-			httpServer.setExecutor(null);
-			httpServer.start();
-        }
+		InetSocketAddress address = new InetSocketAddress(8080);
+		HttpServer httpServer = HttpServer.create(address, 0);
+		System.out.println("Http server started at " + address);
+		httpServer.createContext("/speak", new GetHandler());
+		httpServer.setExecutor(null);
+		httpServer.start();
 	}
 
 	static class GetHandler implements HttpHandler {
