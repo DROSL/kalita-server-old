@@ -13,7 +13,6 @@
 
 - Have the same JRE and JDK version installed *(jdk1.8.0_271 and jre1.8.0_271 used for testing)*
 - Have the environment variable **JAVA_HOME** set to the path of the JDK mentioned in the previous step *(e.g. C:\Program Files\Java\jdk1.8.0_271)*
-- If you want to serve the service with SSL you simply need to add the certificate as **keystore.jks** in the root folder and set the keystore password in the setup of the https server
 
 ## How to use
 
@@ -29,9 +28,10 @@ gradlew shadowJar
 java -jar kalita-server-1.0.jar
 ```
 
-2. Open the file **Kalita Server Demo.html** in your browser.
-3. Type any text you want to be read out loud into the textbox.
-4. Click the **TTS** button.
+3. Configure the server with the **config.properties** file.
+4. Open the file **Kalita Server Demo.html** in your browser.
+5. Type any text you want to be read out loud into the textbox.
+6. Click the **TTS** button.
 
 ## Disclaimer
 
