@@ -29,6 +29,9 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.net.URLDecoder;
 
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.SSLEngine;
@@ -142,16 +145,16 @@ public class kalitaServer {
 						if(from > 44) {
 							response = addWavHeader(response);
 						}
-						he.sendResponseHeaders(200, response.length);
 						he.getResponseHeaders().add("Content-Range", "bytes " + from + "-" + to + "/" + length);
 						he.getResponseHeaders().add("Content-Length", String.valueOf(response.length));
 
-					} else {
-						he.sendResponseHeaders(200, response.length);
 					}
 
-					he.getResponseHeaders().add("Content-Disposition", "attachment; filename=" + "speak.wav");
+					DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy_HH-mm-ss");  
+					LocalDateTime time = LocalDateTime.now();  
+					he.getResponseHeaders().add("Content-Disposition", "attachment; filename=" + dtf.format(time) + "-speak.wav");
 
+					he.sendResponseHeaders(200, response.length);
 					OutputStream os = he.getResponseBody();
 					os.write(response);
 					os.close();
