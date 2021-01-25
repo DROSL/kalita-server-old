@@ -17,7 +17,6 @@
 			function getAudio(text){
 				let queryText = encodeURIComponent(text);
 				var audio = new Audio(`http://localhost:8080/speak/?text=${queryText}`);
-				console.log(queryLanguage);
 				audio.play();
 			}
 		</script>
